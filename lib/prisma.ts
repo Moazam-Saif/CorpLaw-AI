@@ -15,7 +15,13 @@ const globalForPrisma = global as unknown as {
 };
 
 // Initialize the database Pool
-const pool = globalForPrisma.pool || new Pool({ connectionString });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 5,
+  ssl: {
+    rejectUnauthorized: false
+  },
+})
 
 // Wrap it with the Prisma Driver Adapter
 const adapter = new PrismaPg(pool);
