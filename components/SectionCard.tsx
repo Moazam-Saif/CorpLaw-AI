@@ -34,12 +34,12 @@ export default function SectionCard({ topic, summary, content, legalTerms = [] }
           <TooltipProvider key={i} delayDuration={150}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="font-semibold text-slate-800 underline decoration-slate-400 decoration-dotted underline-offset-4 cursor-help transition-colors hover:text-blue-600 hover:decoration-blue-600 hover:bg-blue-50 px-0.5 rounded">
+                <span className="font-semibold text-white underline decoration-slate-500 decoration-dotted underline-offset-4 cursor-help transition-colors hover:text-indigo-300 hover:decoration-indigo-400 hover:bg-slate-800 px-0.5 rounded">
                   {part}
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-[300px]">
-                <p className="font-semibold mb-1 text-blue-300">{matchedTerm.term}</p>
+                <p className="font-semibold mb-1 text-indigo-300">{matchedTerm.term}</p>
                 <p className="text-slate-200 text-sm leading-snug">{matchedTerm.definition}</p>
               </TooltipContent>
             </Tooltip>
@@ -51,20 +51,19 @@ export default function SectionCard({ topic, summary, content, legalTerms = [] }
   };
 
   return (
-    <div className="bg-white border text-sm border-slate-200 rounded-xl shadow-sm mb-4 transition-all duration-300">
-      <div className="bg-slate-50 border-b border-slate-200 px-5 py-3 rounded-t-xl">
-        <h3 className="font-semibold text-slate-800 text-base">{topic}</h3>
+    <div className="bg-[#1e293b] border border-slate-700 rounded-xl shadow-sm h-full flex flex-col transition-all duration-300 overflow-hidden">
+      <div className="bg-[#0f172a] border-b border-slate-700 px-5 py-3 rounded-t-xl shrink-0">
+        <h3 className="font-semibold text-white text-base line-clamp-2">{topic}</h3>
       </div>
-      <div className="p-5 space-y-4">
+      <div className="p-5 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
         {summary && (
-          <div className="bg-blue-50/70 border-l-4 border-blue-400 p-3 italic text-slate-700 text-[15px] rounded-r-md">
+          <div className="bg-slate-800/80 border-l-4 border-indigo-400 p-3 italic text-slate-300 text-[15px] rounded-r-md">
             {summary}
           </div>
         )}
-        <div className="prose prose-slate max-w-none prose-p:leading-relaxed prose-headings:text-slate-800 text-[15px]">
+        <div className="prose prose-invert prose-p:leading-relaxed prose-headings:text-white prose-a:text-indigo-400 text-slate-200 text-[15px]">
           <ReactMarkdown
             components={{
-              // Intercept pure text nodes inside paragraphs/lists to inject tooltips
               text: ({ children }) => {
                 if (typeof children === 'string') {
                   return <>{renderTextWithTooltips(children)}</>;

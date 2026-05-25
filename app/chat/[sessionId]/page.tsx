@@ -51,7 +51,6 @@ export default function ChatSessionPage() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [initLoading, setInitLoading] = useState(true);
-  const [sending, setSending] = useState(false);
   const [initialInput, setInitialInput] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
