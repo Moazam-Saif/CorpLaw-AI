@@ -17,10 +17,8 @@ export default function Page() {
       const res = await fetch('/api/sessions', { method: 'POST' });
       if (res.ok) {
         const session = await res.json();
-        
-        // Pass the first message immediately via query string or just redirect and let the user re-type
-        // For a smoother flow, you could pre-populate this in local state but let's push the user to the chat screen
-        router.push(`/chat/${session.id}`);
+        const encodedMessage = encodeURIComponent(message);
+        router.push(`/chat/${session.id}?initialMessage=${encodedMessage}`);
       }
     } catch (e) {
       console.error(e);

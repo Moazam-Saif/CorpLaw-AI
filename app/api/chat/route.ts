@@ -1,13 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "../../../lib/prisma";
-import { getGeminiResponse } from "../../../lib/gemini";
+import { google } from "@ai-sdk/google";
+import { streamObject } from "ai";
+import { z } from "zod";
+import { buildSystemPrompt } from "../../../lib/prompts";
+
+export const maxDuration = 60; // Allow longer generation time
 
 export async function POST(req: NextRequest) {
   try {
     const { sessionId, message, country } = await req.json();
 
     if (!sessionId || !message) {
-      return NextResponse.json({ error: "Missing sessionId or message" }, { status: 400 });
+      return new Response("Missing sessionId or message", { status: 400 });
     }
 
     // Load past messages
@@ -17,32 +22,10 @@ export async function POST(req: NextRequest) {
       take: 12,
     });
 
-    const history = pastMessages.map((msg) => ({
-      role: msg.role === "USER" ? "user" : "model",
-      parts: [{ text: msg.content }],
+    const history: { role: "user" | "assistant"; content: string }[] = pastMessages.map((msg) => ({
+      role: msg.role === "USER" ? "user" : "assistant",
+      content: msg.content,
     }));
-
-    // Generate Gemini AI response
-    const aiResponseData = await getGeminiResponse(history, message, country);
-
-    // Save User message
-    await prisma.message.create({
-      data: {
-        sessionId,
-        role: "USER",
-        content: message,
-      },
-    });
-
-    // Save AI response
-    const finalAnswer = `Confidence: ${aiResponseData.confidence}% \n\n ${aiResponseData.response}\n\n*${aiResponseData.disclaimer}*`;
-    const aiMsg = await prisma.message.create({
-      data: {
-        sessionId,
-        role: "ASSISTANT",
-        content: finalAnswer,
-      },
-    });
 
     // Update Session title
     if (pastMessages.length === 0) {
@@ -53,9 +36,63 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ message: aiMsg });
+    // Save User message immediately
+    await prisma.message.create({
+      data: {
+        sessionId,
+        role: "USER",
+        content: message,
+      },
+    });
+
+    history.push({ role: "user", content: message });
+
+    // Stream the structured object using the AI SDK
+    const result = streamObject({
+      model: google("gemini-2.5-flash"),
+      system: buildSystemPrompt(country),
+      messages: history,
+      schema: z.object({
+        sections: z.array(
+          z.object({
+            topic: z.string().describe("Short title of this section"),
+            summary: z.string().describe("One-sentence overview of this section"),
+            content: z.string().describe("Full markdown-formatted legal analysis"),
+          })
+        ),
+        legalTerms: z.array(
+          z.object({
+            term: z.string(),
+            definition: z.string(),
+          })
+        ).optional(),
+        references: z.array(
+          z.object({
+            title: z.string(),
+            url: z.string().optional(),
+            description: z.string().optional(),
+          })
+        ).optional(),
+        confidence: z.number().describe("0 to 100 integer confidence score"),
+        disclaimer: z.string(),
+      }),
+      onFinish: async ({ object }) => {
+        // Save the AI response when finished streaming
+        if (object) {
+          await prisma.message.create({
+            data: {
+              sessionId,
+              role: "ASSISTANT",
+              content: JSON.stringify(object),
+            },
+          });
+        }
+      },
+    });
+
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error("Chat API Error:", error);
-    return NextResponse.json({ error: "Failed to generate a response" }, { status: 500 });
+    return new Response("Failed to generate a response", { status: 500 });
   }
 }
