@@ -31,7 +31,7 @@ export default function Page() {
       <Sidebar />
       <section className="flex flex-1 flex-col bg-[#f5f6fa]">
         <Header />
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <HeroCards />
         </div>
         <ChatInput onSubmit={handleStartSession} isLoading={creating} />

@@ -6,9 +6,11 @@ interface SectionCardProps {
   summary: string;
   content: string; // Markdown
   legalTerms?: { term: string; definition: string }[];
+  isDark?: boolean;
+  animationDelay?: number;
 }
 
-export default function SectionCard({ topic, summary, content, legalTerms = [] }: SectionCardProps) {
+export default function SectionCard({ topic, summary, content, legalTerms = [], isDark = true, animationDelay = 0 }: SectionCardProps) {
   
   // Custom renderer for the markdown paragraphs
   // This looks through text nodes and wraps matching legal terms in Tooltips
@@ -51,17 +53,26 @@ export default function SectionCard({ topic, summary, content, legalTerms = [] }
   };
 
   return (
-    <div className="bg-[#1e293b] border border-slate-700 rounded-xl shadow-sm h-full flex flex-col transition-all duration-300 overflow-hidden">
-      <div className="bg-[#0f172a] border-b border-slate-700 px-5 py-3 rounded-t-xl shrink-0">
-        <h3 className="font-semibold text-white text-base line-clamp-2">{topic}</h3>
-      </div>
-      <div className="p-5 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
+    <div 
+      className={`font-['Afacad',sans-serif] text-white flex flex-col h-full rounded-[14px] p-[24px_22px] text-[17px] font-[700] leading-[1.65] overflow-hidden shadow-xl ${
+        isDark ? 'bg-[#1B3B9B]' : 'bg-[#59ABE9]'
+      }`}
+      style={{ opacity: 0, animation: `customFadeSlideUp 0.8s ease-out ${animationDelay}s forwards` }}
+    >
+      <h3 className="font-[900] text-[28px] uppercase mb-4 tracking-[1.5px] border-b-2 border-white/30 pb-3 shrink-0 drop-shadow-md pb-4 pt-2">
+        {topic}
+      </h3>
+      
+      <div 
+        className="space-y-4 overflow-y-auto flex-1 custom-scrollbar pr-2"
+        style={{ opacity: 0, animation: `customFadeSlideUp 0.8s ease-out ${animationDelay + 0.5}s forwards` }}
+      >
         {summary && (
-          <div className="bg-slate-800/80 border-l-4 border-indigo-400 p-3 italic text-slate-300 text-[15px] rounded-r-md">
+          <div className="bg-black/10 border-l-4 border-white/40 p-3 italic text-[#FBF5C6] text-[16px] rounded-r-md">
             {summary}
           </div>
         )}
-        <div className="prose prose-invert prose-p:leading-relaxed prose-headings:text-white prose-a:text-indigo-400 text-slate-200 text-[15px]">
+        <div className="prose prose-invert prose-p:leading-[1.65] prose-headings:text-white prose-a:text-white/80 text-white text-[17px] font-[700]">
           <ReactMarkdown
             components={{
               text: ({ children }) => {

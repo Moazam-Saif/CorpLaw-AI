@@ -1,9 +1,13 @@
 import { NextRequest } from "next/server";
 import { prisma } from "../../../lib/prisma";
-import { google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { streamObject } from "ai";
 import { z } from "zod";
 import { buildSystemPrompt } from "../../../lib/prompts";
+
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GEMINI_API_KEY || "",
+});
 
 export const maxDuration = 60; // Allow longer generation time
 

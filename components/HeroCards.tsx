@@ -7,12 +7,12 @@ const cards = [
 
 export default function HeroCards() {
   return (
-    <div className="relative h-full w-full max-w-[1400px] mx-auto px-[20px] md:px-[80px] py-[10px] md:py-[40px] overflow-hidden">
-      <div className="absolute left-1/2 top-[-11.5vh] -translate-x-1/2 text-[320px] md:text-[420px] font-[family:var(--font-playfair)] text-slate-300/20 leading-none select-none pointer-events-none z-100">
-        <img src="/tie.png" alt="tie" className="h-[85vh] w-auto object-contain opacity-100 z-100" />
+    <div className="relative h-full w-full max-w-[1400px] mx-auto px-[20px] md:px-[80px] py-[8px] md:py-[28px] overflow-hidden z-10">
+      <div className="absolute left-1/2 top-[-10vh] -translate-x-1/2 text-[320px] md:text-[420px] font-[family:var(--font-playfair)] text-slate-300/20 leading-none select-none pointer-events-none z-100">
+        <img src="/tie.png" alt="tie" className="h-[76vh] w-auto object-contain opacity-100 z-100 drop-shadow-xs" />
       </div>
 
-      <h2 className="relative z-10 text-[clamp(2.5rem,4.2vw+1rem,4rem)] leading-[1.05] font-['Playfair_Display',serif] font-bold text-[#1a2744] max-w-[620px] mt-[clamp(5px,1vh,20px)] mb-[clamp(30px,5vh,60px)]">
+      <h2 className="relative z-10 text-[clamp(2.2rem,3.5vw+1rem,3.5rem)] leading-[1.05] font-['Playfair_Display',serif] font-bold text-[#1a2744] max-w-[620px] mt-[clamp(5px,1vh,18px)] mb-[clamp(25px,4vh,48px)]">
         HOW
         <br />
         MAY I
