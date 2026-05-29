@@ -8,6 +8,7 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import ChatInput from '@/components/ChatInput';
 import MessageBubble from '@/components/MessageBubble';
+import themeChoices from '@/lib/theme';
 import { Loader2 } from 'lucide-react';
 
 interface Message {
@@ -15,6 +16,7 @@ interface Message {
   role: 'USER' | 'ASSISTANT';
   content: string;
   createdAt: string;
+  themeIdx?: number;
 }
 
 // Define the exact schema the backend streams to the frontend
@@ -116,6 +118,7 @@ export default function ChatSessionPage() {
       role: 'USER',
       content: text,
       createdAt: new Date().toISOString(),
+      themeIdx: Math.floor(Math.random() * 3),
     };
 
     setMessages(prev => [...prev, optimisticUserMsg]);
@@ -183,19 +186,22 @@ export default function ChatSessionPage() {
                   } else {
                     // User message still waiting for AI response
 
-                    // Calculate styles matching the alternating scheme
-                    const themeIndex = index % 4;
-                    let sBg, sBorder, sTape, lA, tA;
-                    if (themeIndex === 0 || themeIndex === 2) {
-                      sBg = 'bg-[#fbf5c6]'; sBorder = 'border-[#edcd6f]'; sTape = 'bg-[#e0d691]/50';
-                      lA = 'text-[#d4af37]'; tA = 'text-[#4a4220]';
-                    } else if (themeIndex === 1) {
-                      sBg = 'bg-[#1B3B9B]'; sBorder = 'border-[#152e7a]'; sTape = 'bg-white/20';
-                      lA = 'text-[#fbf5c6]/60'; tA = 'text-white';
-                    } else {
-                      sBg = 'bg-[#59ABE9]'; sBorder = 'border-white/30'; sTape = 'bg-white/30';
-                      lA = 'text-[#fbf5c6]'; tA = 'text-white';
+                    // Choose theme from shared `themeChoices` so colors match the modal and cards.
+
+                    // If the message already has a precomputed theme index (optimistic), use it.
+                    let chosenIdx = pair.userMsg?.themeIdx ?? 0;
+                    if (typeof chosenIdx !== 'number') {
+                      const msgId = pair.userMsg?.id;
+                      if (msgId) {
+                        let sum = 0;
+                        for (let i = 0; i < msgId.length; i++) sum += msgId.charCodeAt(i);
+                        chosenIdx = sum % themeChoices.length;
+                      } else {
+                        chosenIdx = index % themeChoices.length;
+                      }
                     }
+
+                    const { sBg, sBorder, sTape, lA, tA } = themeChoices[chosenIdx];
 
                     return (
                       <div key={pair.userMsg?.id || index} className={`w-[300px] h-[300px] ${sBg} p-6 shadow-md border ${sBorder} font-['Afacad',sans-serif] flex flex-col transform rotate-1 rounded-sm relative`}>
