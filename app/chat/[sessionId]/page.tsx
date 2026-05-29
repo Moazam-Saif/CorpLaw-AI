@@ -156,8 +156,8 @@ export default function ChatSessionPage() {
           <Header />
         </div>
 
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto min-h-0 flex flex-col">
-          <div className="px-4 md:px-10 pt-6">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto min-h-0">
+          <div className="flex-1 px-4 md:px-10 pt-6 overflow-auto">
             {initLoading ? (
               <div className="h-full w-full flex items-center justify-center text-slate-400 gap-2">
                 <Loader2 className="animate-spin" size={20} /> Loading chat...
@@ -233,9 +233,9 @@ export default function ChatSessionPage() {
             )}
 
           </div>
-          <div className="mt-auto">  {/* ← pushes ChatInput to bottom */}
-            <ChatInput onSubmit={handleSendMessage} isLoading={isStreaming} />
-          </div>
+        </div>
+        <div className="shrink-0">
+          <ChatInput onSubmit={handleSendMessage} isLoading={isStreaming} />
         </div>
       </section>
     </main>
