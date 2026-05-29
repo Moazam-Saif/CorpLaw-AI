@@ -151,15 +151,16 @@ export default function ChatSessionPage() {
   }
 
   return (
-    <main className="flex h-screen overflow-hidden bg-[#f0f2f7] text-slate-900">
-      <Sidebar />
+    <main className="flex h-screen flex-col overflow-hidden bg-[#f0f2f7] text-slate-900">
+      <div className="shrink-0 relative z-20">
+        <Header />
+      </div>
 
-      <section className="flex flex-1 flex-col bg-[#f5f6fa] overflow-hidden">
-        <div className="shrink-0 h-13 relative z-20">
-          <Header />
-        </div>
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <Sidebar />
 
-        <div ref={scrollContainerRef} className="flex-1 min-h-0 flex flex-col">
+        <section className="flex flex-1 flex-col bg-[#f5f6fa] overflow-hidden">
+          <div ref={scrollContainerRef} className="flex-1 min-h-0 flex flex-col">
           <div className="flex-1 px-4 md:px-10 pt-6 overflow-y-auto min-h-0">
             {initLoading ? (
               <div className="h-full w-full flex items-center justify-center text-slate-400 gap-2">
@@ -238,12 +239,13 @@ export default function ChatSessionPage() {
               </div>
             )}
 
+            </div>
           </div>
-        </div>
-        <div className="shrink-0">
-          <ChatInput onSubmit={handleSendMessage} isLoading={isStreaming} />
-        </div>
-      </section>
+          <div className="shrink-0">
+            <ChatInput onSubmit={handleSendMessage} isLoading={isStreaming} />
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

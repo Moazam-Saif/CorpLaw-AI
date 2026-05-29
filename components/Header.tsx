@@ -2,6 +2,7 @@
 
 import { Info, Settings, Globe } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const COUNTRIES = [
   "Global", "United States", "United Kingdom", "Canada", "Australia", 
@@ -10,6 +11,7 @@ const COUNTRIES = [
 
 export default function Header() {
   const [country, setCountry] = useState("Global");
+  const router = useRouter();
 
   useEffect(() => {
     const saved = localStorage.getItem("corplaw_country");
@@ -25,21 +27,36 @@ export default function Header() {
   };
 
   return (
-    <header className="h-[52px] shrink-0 border-b border-[#d8dce8] bg-white px-6 flex items-center justify-between">
-      <h1 className="text-[15px] font-semibold text-[#1a2744]">Corp Law AI</h1>
-      <div className="flex items-center gap-4 text-[#8891a8]">
-        <div className="flex items-center gap-1.5 border border-[#d8dce8] rounded-md px-2 py-1 text-[13px] bg-[#f8f9fd] text-[#1a2744]">
-          <Globe size={14} className="text-[#3d5494]" />
-          <select 
-            value={country}
-            onChange={handleCountryChange}
-            className="bg-transparent outline-none cursor-pointer appearance-none pr-1"
-          >
-            {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+    <header className="relative h-13 shrink-0 border-b border-[#d8dce8] bg-white px-6">
+      <div className="grid h-full grid-cols-1 md:grid-cols-[18rem_1fr] items-stretch">
+        <div className="flex items-center justify-center md:justify-start">
+          <div className="flex items-center gap-2 rounded-full border border-[#dbe2ef] bg-[#f8f9fd]/95 px-3 py-1.5 shadow-[0_6px_18px_rgba(26,39,68,0.05)] backdrop-blur-sm">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[#3d5494] shadow-sm">
+              <Globe size={12} />
+            </div>
+            <select
+              value={country}
+              onChange={handleCountryChange}
+              className="min-w-36 bg-transparent text-center text-[12px] font-medium tracking-[0.06em] text-[#1a2744] outline-none cursor-pointer appearance-none"
+            >
+              {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
         </div>
-        <Info size={18} className="cursor-pointer hover:text-[#3d5494]" />
-        <Settings size={18} className="cursor-pointer hover:text-[#3d5494]" />
+
+        <div className="relative flex items-center justify-center md:justify-center">
+          <button
+            type="button"
+            onClick={() => router.push('/')}
+            className="absolute left-1/2 -translate-x-1/2 font-['Playfair_Display',serif] text-[20px] md:text-[21px] font-bold uppercase tracking-[0.18em] text-[#1a2744] whitespace-nowrap text-center hover:text-[#3d5494] transition-colors cursor-pointer"
+          >
+            Corp Law AI
+          </button>
+          <div className="hidden md:flex items-center gap-4 text-[#8891a8] ml-auto">
+            <Info size={18} className="cursor-pointer hover:text-[#3d5494] transition-colors" />
+            <Settings size={18} className="cursor-pointer hover:text-[#3d5494] transition-colors" />
+          </div>
+        </div>
       </div>
     </header>
   );

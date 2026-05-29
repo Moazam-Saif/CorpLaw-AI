@@ -27,15 +27,23 @@ export default function Page() {
   };
 
   return (
-    <main className="flex h-screen overflow-hidden bg-[#f0f2f7] text-slate-900">
-      <Sidebar />
-      <section className="flex flex-1 flex-col bg-[#f5f6fa]">
+    <main className="flex h-screen flex-col overflow-hidden bg-[#f0f2f7] text-slate-900">
+      <div className="shrink-0 relative z-20">
         <Header />
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <HeroCards />
-        </div>
-        <ChatInput onSubmit={handleStartSession} isLoading={creating} />
-      </section>
+      </div>
+
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <Sidebar />
+
+        <section className="flex flex-1 flex-col bg-[#f5f6fa] overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto relative z-0">
+            <HeroCards />
+          </div>
+          <div className="shrink-0 relative z-30">
+            <ChatInput onSubmit={handleStartSession} isLoading={creating} />
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
