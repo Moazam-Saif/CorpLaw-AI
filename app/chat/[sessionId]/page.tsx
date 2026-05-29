@@ -104,11 +104,9 @@ export default function ChatSessionPage() {
     fetchSession();
   }, [sessionId, searchParams, router]);
 
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    }
-  }, [messages, isStreaming, object]);
+  // Auto-scroll disabled: user will control scrolling manually.
+  // To re-enable auto-scrolling only when the user is already at
+  // the bottom, implement a 'isAtBottom' check before setting scrollTop.
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isStreaming) return;
@@ -159,7 +157,7 @@ export default function ChatSessionPage() {
         </div>
 
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto min-h-0 flex flex-col">
-          <div className="flex-1 px-4 md:px-10 pt-6">
+          <div className="px-4 md:px-10 pt-6">
             {initLoading ? (
               <div className="h-full w-full flex items-center justify-center text-slate-400 gap-2">
                 <Loader2 className="animate-spin" size={20} /> Loading chat...
@@ -234,7 +232,9 @@ export default function ChatSessionPage() {
               </div>
             )}
 
-          <ChatInput onSubmit={handleSendMessage} isLoading={isStreaming} />
+          </div>
+          <div className="mt-auto">  {/* ← pushes ChatInput to bottom */}
+            <ChatInput onSubmit={handleSendMessage} isLoading={isStreaming} />
           </div>
         </div>
       </section>
