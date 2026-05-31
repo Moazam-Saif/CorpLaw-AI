@@ -83,7 +83,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
   const time = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const sections = parsedContent?.sections || [];
-  const cardsPerPage = 2;
+  const cardsPerPage = 1;
   const totalPages = Math.ceil(sections.length / cardsPerPage);
   
   const handlePrevPage = () => {
@@ -94,6 +94,9 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
   };
 
   const visibleSections = sections.slice(currentPage * cardsPerPage, (currentPage + 1) * cardsPerPage);
+  const activeSection = visibleSections[0];
+  const previousSection = currentPage > 0 ? sections[currentPage - 1] : null;
+  const nextSection = currentPage < totalPages - 1 ? sections[currentPage + 1] : null;
 
   // Determine Sticky Note Colors
   const themeIndex = index % 4;
@@ -118,18 +121,20 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (totalPages > 1) {
-        if (e.key === 'ArrowLeft') {
-          handlePrevPage();
-        } else if (e.key === 'ArrowRight') {
-          handleNextPage();
-        }
+      if (!isModalOpen || totalPages <= 1) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        handlePrevPage();
+      } else if (e.key === 'ArrowRight') {
+        handleNextPage();
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [totalPages]);
+  }, [isModalOpen, totalPages]);
 
   return (
     <div className="font-['Afacad',sans-serif]">
@@ -213,9 +218,9 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                 className="text-center mb-[24px] w-full flex justify-center"
                 style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 0.1s forwards' }}
               >
-                <div className="bg-[#fbf5c6] backdrop-blur-sm px-12 py-4 rounded-md border border-[#edcd6f]/40 shadow-sm min-w-[65%] max-w-4xl text-left flex flex-col gap-1 font-['Afacad',sans-serif] text-[17px] font-[700] text-[#332e18]">
-                  <span className="text-[#b8952b] text-[13px] uppercase tracking-widest font-[800]">Query</span>
-                  <span className="text-[#332e18] leading-snug">{userMessage}</span>
+                <div className="bg-[#59ABE9] backdrop-blur-sm px-12 py-4 rounded-md border border-[#1B3B9B]/40 shadow-sm min-w-[65%] max-w-4xl text-left flex flex-col gap-1 font-['Afacad',sans-serif] text-[17px] font-[700] text-white">
+                  <span className="text-white text-[13px] uppercase tracking-widest font-[800]">Query</span>
+                  <span className="text-white leading-snug">{userMessage}</span>
                 </div>
               </div>
             )}
@@ -245,22 +250,51 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
             ) : isStructured && parsedContent ? (
               <>
                 {sections.length > 0 ? (
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-[24px] xl:gap-[32px] auto-rows-fr min-h-[450px]">
-                    {visibleSections.map((section: any, idx: number) => (
-                      <div 
-                        key={idx + currentPage * cardsPerPage} 
-                        className="h-full"
+                  <div className="relative min-h-[560px] flex items-center justify-center overflow-hidden">
+                    {previousSection && (
+                      <div
+                        className="absolute left-0 top-1/2 z-0 hidden xl:block w-[30%] max-w-[360px] pointer-events-none select-none"
+                        style={{ transform: 'translate(-32%, -50%) scale(0.78)', opacity: 0.12, filter: 'blur(5px)' }}
                       >
                         <SectionCard
-                          topic={section.topic || "Generating..."}
-                          summary={section.summary}
-                          content={section.content || ""}
+                          topic={previousSection.topic || 'Generating...'}
+                          summary={previousSection.summary}
+                          content={previousSection.content || ''}
                           legalTerms={parsedContent.legalTerms}
-                          isDark={idx % 2 === 0}
-                          animationDelay={0.4 + (idx * 0.8)}
+                          isDark={false}
+                          animationDelay={0.2}
                         />
                       </div>
-                    ))}
+                    )}
+
+                    {activeSection && (
+                      <div className="relative z-10 w-full max-w-[680px] h-[560px] px-2 sm:px-6">
+                        <SectionCard
+                          topic={activeSection.topic || 'Generating...'}
+                          summary={activeSection.summary}
+                          content={activeSection.content || ''}
+                          legalTerms={parsedContent.legalTerms}
+                          isDark={currentPage % 2 === 0}
+                          animationDelay={0.4}
+                        />
+                      </div>
+                    )}
+
+                    {nextSection && (
+                      <div
+                        className="absolute right-0 top-1/2 z-0 hidden xl:block w-[30%] max-w-[360px] pointer-events-none select-none"
+                        style={{ transform: 'translate(32%, -50%) scale(0.78)', opacity: 0.12, filter: 'blur(5px)' }}
+                      >
+                        <SectionCard
+                          topic={nextSection.topic || 'Generating...'}
+                          summary={nextSection.summary}
+                          content={nextSection.content || ''}
+                          legalTerms={parsedContent.legalTerms}
+                          isDark={true}
+                          animationDelay={0.2}
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-[24px] xl:gap-[32px] auto-rows-fr min-h-[450px]">
