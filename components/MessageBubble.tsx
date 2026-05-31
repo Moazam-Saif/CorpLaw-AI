@@ -31,6 +31,8 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
   const [isModalOpen, setIsModalOpen] = useState(isStreaming || defaultOpen);
   const transitionTimeoutRef = useRef<number | null>(null);
   const parentContainerRef = useRef<HTMLDivElement | null>(null);
+  const layoutContainerRef = useRef<HTMLDivElement | null>(null);
+  const savedBodyOverflowRef = useRef<string | null>(null);
   const outgoingAnimRef = useRef<HTMLDivElement | null>(null);
   const incomingAnimRef = useRef<HTMLDivElement | null>(null);
   const [prevPage, setPrevPage] = useState<number | null>(null);
@@ -104,19 +106,32 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
     setTransitionDirection(direction);
     setTransitionPage(nextPage);
 
-    // Lock the width of the center container to avoid reflow when DOM updates
-    const parentEl = parentContainerRef.current;
-    if (parentEl) {
-      const rect = parentEl.getBoundingClientRect();
-      parentEl.style.width = `${rect.width}px`;
-      parentEl.style.maxWidth = `${rect.width}px`;
-    }
-
     // set the current page immediately so the underlying DOM reflects the final state
     setCurrentPage(nextPage);
     setIsTransitioning(true);
 
-    // After starting, we will cleanup on animationend of the incoming clone
+    // Prevent body scroll/scrollbar changes during the animation which can cause width shifts
+    try {
+      savedBodyOverflowRef.current = document.body.style.overflow || null;
+      document.body.style.overflow = 'hidden';
+    } catch (e) {}
+
+    // Wait two frames so the DOM updates (including preview cards) are applied, then lock the layout width
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const layoutEl = layoutContainerRef.current;
+        const parentEl = parentContainerRef.current;
+        if (layoutEl) {
+          const rect = layoutEl.getBoundingClientRect();
+          layoutEl.style.width = `${rect.width}px`;
+          layoutEl.style.maxWidth = `${rect.width}px`;
+        } else if (parentEl) {
+          const rect = parentEl.getBoundingClientRect();
+          parentEl.style.width = `${rect.width}px`;
+          parentEl.style.maxWidth = `${rect.width}px`;
+        }
+      });
+    });
   };
 
   const handlePrevPage = () => {
@@ -134,7 +149,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
   // Determine Sticky Note Colors
   const themeIndex = index % 4;
   let sBg, sBorder, sTape, lA, tA, bB, lB, tB, footerColor;
-  
+
   if (themeIndex === 0 || themeIndex === 2) {
     // Yellow
     sBg = 'bg-[#fbf5c6]'; sBorder = 'border-[#edcd6f]'; sTape = 'bg-[#e0d691]/50';
@@ -172,7 +187,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
         handleNextPage();
       }
     };
-    
+  
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModalOpen, totalPages, isTransitioning]);
@@ -197,6 +212,16 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
         parentEl.style.width = '';
         parentEl.style.maxWidth = '';
       }
+
+      // restore body overflow
+      try {
+        if (savedBodyOverflowRef.current !== null) {
+          document.body.style.overflow = savedBodyOverflowRef.current;
+          savedBodyOverflowRef.current = null;
+        } else {
+          document.body.style.overflow = '';
+        }
+      } catch (e) {}
     };
 
     if (inEl) inEl.addEventListener('animationend', handleAnimEnd as any);
@@ -205,7 +230,6 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
     };
   }, [isTransitioning]);
 
-  
 
   return (
     <div className="font-['Afacad',sans-serif]">
@@ -218,7 +242,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
         >
           {/* Sticky Tape Pin */}
           <div className={`absolute top-[-10px] left-1/2 -translate-x-1/2 w-12 h-5 ${sTape} backdrop-blur-sm shadow-sm`} style={{ transform: `rotate(${Math.random() * 6 - 3}deg)` }} />
-          
+        
           <div className="flex flex-col h-full gap-3">
             {/* Query Section */}
             {userMessage && (
@@ -237,7 +261,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
               <div className="flex items-center gap-2 mb-1">
                 <span className={`text-[11px] font-[800] uppercase tracking-wider ${lB}`}>Analysis</span>
               </div>
-              
+            
               {isStructured && parsedContent ? (
                 <div>
                   <p className={`text-[15px] font-[600] ${tB} leading-snug line-clamp-4`}>
@@ -264,11 +288,11 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
 
       {/* Modal Overlay for Structured Content */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#EAEDF2] px-4 sm:px-10 py-10 overflow-y-auto">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#EAEDF2] px-4 sm:px-10 pt-0 pb-10 overflow-y-auto">
           {/* Background click to close */}
           <div className="fixed inset-0" onClick={() => setIsModalOpen(false)}></div>
-          
-          <div className="relative font-['Afacad',sans-serif] w-full max-w-[1400px] bg-[#EAEDF2] backdrop-blur-xl p-6 sm:p-10 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.08)] border border-[#c8d0dc] animate-in fade-in zoom-in-[0.98] duration-700 m-auto mt-auto mb-auto pointer-events-auto">
+        
+          <div className="relative font-['Afacad',sans-serif] w-full max-w-[1400px] bg-[#EAEDF2] backdrop-blur-xl p-6 sm:p-10 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.08)] border border-[#c8d0dc] animate-in fade-in zoom-in-[0.98] duration-700 mx-auto mt-0 mb-auto pointer-events-auto">
             <style dangerouslySetInnerHTML={{__html: `
               @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700;800;900&display=swap');
               @keyframes customFadeSlideUp {
@@ -293,7 +317,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
               }
             `}} />
-            
+          
             <button 
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-[#332e18]/50 hover:text-[#332e18] bg-[#edcd6f]/30 hover:bg-[#edcd6f]/60 rounded-full w-10 h-10 flex items-center justify-center transition-colors shadow-sm"
@@ -338,8 +362,8 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
             ) : isStructured && parsedContent ? (
               <>
                 {sections.length > 0 ? (
-                  <div className="relative min-h-[560px] flex items-center justify-center overflow-hidden">
-                    {previousSection && !isTransitioning && (
+                  <div className="relative min-h-[560px] flex items-center justify-center overflow-hidden" ref={layoutContainerRef}>
+                    {previousSection && (
                       <div
                         className="absolute left-0 top-1/2 z-0 hidden xl:block w-[18%] max-w-[220px] h-[360px] pointer-events-none select-none origin-center"
                         style={{ transform: 'translate(-12%, -50%)', opacity: 0.12, filter: 'blur(5px)' }}
@@ -419,9 +443,8 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                       </div>
                     )}
 
- 
 
-                    {nextSection && !isTransitioning && (
+                    {nextSection && (
                       <div
                         className="absolute right-0 top-1/2 z-0 hidden xl:block w-[18%] max-w-[220px] h-[360px] pointer-events-none select-none origin-center"
                         style={{ transform: 'translate(12%, -50%)', opacity: 0.12, filter: 'blur(5px)' }}
@@ -454,7 +477,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                     </div>
                   </div>
                 )}
-                
+
                 {/* Carousel Controls */}
                 {totalPages > 1 && (
                   <div 
@@ -506,7 +529,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                       </div>
                   </div>
                 )}
-                
+
                 {parsedContent.references && parsedContent.references.length > 0 && (
                   <div className="mt-8 mx-auto w-full max-w-4xl" style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 2.5s forwards' }}>
                     <ReferencesList references={parsedContent.references} />
