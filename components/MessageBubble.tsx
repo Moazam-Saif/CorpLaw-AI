@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { ShieldAlert, Fingerprint, User, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import SectionCard from './SectionCard';
 import ReferencesList from './ReferencesList';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Message {
   id: string;
@@ -25,7 +25,15 @@ interface MessageBubbleProps {
 export default function MessageBubble({ message, userMessage, partialObject, isStreaming = false, index = 0, defaultOpen = false }: MessageBubbleProps) {
   const ai = message.role === 'ASSISTANT';
   const [currentPage, setCurrentPage] = useState(0);
+  const [transitionPage, setTransitionPage] = useState<number | null>(null);
+  const [transitionDirection, setTransitionDirection] = useState<'next' | 'prev' | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(isStreaming || defaultOpen);
+  const transitionTimeoutRef = useRef<number | null>(null);
+  const parentContainerRef = useRef<HTMLDivElement | null>(null);
+  const outgoingAnimRef = useRef<HTMLDivElement | null>(null);
+  const incomingAnimRef = useRef<HTMLDivElement | null>(null);
+  const [prevPage, setPrevPage] = useState<number | null>(null);
   
   // Auto-open modal if it's currently streaming
   useEffect(() => {
@@ -85,12 +93,37 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
   const sections = parsedContent?.sections || [];
   const cardsPerPage = 1;
   const totalPages = Math.ceil(sections.length / cardsPerPage);
+  const isPartial = Boolean(partialObject && isStreaming);
   
+  const startPageTransition = (nextPage: number, direction: 'next' | 'prev') => {
+    if (nextPage === currentPage || isTransitioning) {
+      return;
+    }
+    // record previous page so we can render an outgoing clone
+    setPrevPage(currentPage);
+    setTransitionDirection(direction);
+    setTransitionPage(nextPage);
+
+    // Lock the width of the center container to avoid reflow when DOM updates
+    const parentEl = parentContainerRef.current;
+    if (parentEl) {
+      const rect = parentEl.getBoundingClientRect();
+      parentEl.style.width = `${rect.width}px`;
+      parentEl.style.maxWidth = `${rect.width}px`;
+    }
+
+    // set the current page immediately so the underlying DOM reflects the final state
+    setCurrentPage(nextPage);
+    setIsTransitioning(true);
+
+    // After starting, we will cleanup on animationend of the incoming clone
+  };
+
   const handlePrevPage = () => {
-    setCurrentPage(p => Math.max(0, p - 1));
+    startPageTransition(Math.max(0, currentPage - 1), 'prev');
   };
   const handleNextPage = () => {
-    setCurrentPage(p => Math.min(totalPages - 1, p + 1));
+    startPageTransition(Math.min(totalPages - 1, currentPage + 1), 'next');
   };
 
   const visibleSections = sections.slice(currentPage * cardsPerPage, (currentPage + 1) * cardsPerPage);
@@ -120,8 +153,16 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
   }
 
   useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current !== null) {
+        window.clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isModalOpen || totalPages <= 1) {
+      if (!isModalOpen || totalPages <= 1 || isTransitioning) {
         return;
       }
 
@@ -134,7 +175,37 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalOpen, totalPages]);
+  }, [isModalOpen, totalPages, isTransitioning]);
+
+  // Cleanup after transition animation finishes: remove clones and unlock width
+  useEffect(() => {
+    if (!isTransitioning) return;
+
+    const inEl = incomingAnimRef.current;
+    const handleAnimEnd = (e: AnimationEvent) => {
+      if (e.target !== inEl) return;
+
+      // cleanup state
+      setTransitionPage(null);
+      setTransitionDirection(null);
+      setIsTransitioning(false);
+      setPrevPage(null);
+
+      // clear locked width
+      const parentEl = parentContainerRef.current;
+      if (parentEl) {
+        parentEl.style.width = '';
+        parentEl.style.maxWidth = '';
+      }
+    };
+
+    if (inEl) inEl.addEventListener('animationend', handleAnimEnd as any);
+    return () => {
+      if (inEl) inEl.removeEventListener('animationend', handleAnimEnd as any);
+    };
+  }, [isTransitioning]);
+
+  
 
   return (
     <div className="font-['Afacad',sans-serif]">
@@ -193,16 +264,33 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
 
       {/* Modal Overlay for Structured Content */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-md px-4 sm:px-10 py-10 overflow-y-auto">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#EAEDF2] px-4 sm:px-10 py-10 overflow-y-auto">
           {/* Background click to close */}
           <div className="fixed inset-0" onClick={() => setIsModalOpen(false)}></div>
           
-          <div className="relative font-['Afacad',sans-serif] w-full max-w-[1400px] bg-black/10 backdrop-blur-xl p-6 sm:p-10 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.3)] border border-white/20 animate-in fade-in zoom-in-[0.98] duration-700 m-auto mt-auto mb-auto pointer-events-auto">
+          <div className="relative font-['Afacad',sans-serif] w-full max-w-[1400px] bg-[#EAEDF2] backdrop-blur-xl p-6 sm:p-10 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.08)] border border-[#c8d0dc] animate-in fade-in zoom-in-[0.98] duration-700 m-auto mt-auto mb-auto pointer-events-auto">
             <style dangerouslySetInnerHTML={{__html: `
               @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700;800;900&display=swap');
               @keyframes customFadeSlideUp {
                 0% { opacity: 0; transform: translateY(30px); }
                 100% { opacity: 1; transform: translateY(0); }
+              }
+              /* GPU-friendly move+scale animations. Avoid animating layout properties. */
+              @keyframes cardMoveToLeftPreview {
+                0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(calc(-50% - 40vw), -50%) scale(0.34); opacity: 0.12; }
+              }
+              @keyframes cardMoveToRightPreview {
+                0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(calc(-50% + 40vw), -50%) scale(0.34); opacity: 0.12; }
+              }
+              @keyframes cardMoveFromRightPreview {
+                0% { transform: translate(calc(-50% + 40vw), -50%) scale(0.34); opacity: 0.12; }
+                100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+              }
+              @keyframes cardMoveFromLeftPreview {
+                0% { transform: translate(calc(-50% - 40vw), -50%) scale(0.34); opacity: 0.12; }
+                100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
               }
             `}} />
             
@@ -228,22 +316,22 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
             {/* Removed global modal title per design — headings now live on each card */}
 
             {isStreaming && !isStructured ? (
-              <div className="bg-black/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl max-w-4xl mx-auto w-full">
+              <div className="bg-[#EAEDF2] rounded-2xl p-6 border border-[#c8d0dc] shadow-xl max-w-4xl mx-auto w-full">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-sm font-[900] text-white uppercase tracking-widest">Analyzing</span>
+                  <span className="text-sm font-[900] text-[#1f2937] uppercase tracking-widest">Analyzing</span>
                 </div>
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-[24px] xl:gap-[32px] auto-rows-fr min-h-[450px]">
-                  <div className="h-full rounded-[14px] bg-white/10 border border-white/10 p-[24px_22px] animate-pulse">
-                    <div className="h-4 w-24 rounded-full bg-white/20 mb-4" />
-                    <div className="h-6 w-3/4 rounded-full bg-white/20 mb-3" />
-                    <div className="h-4 w-full rounded-full bg-white/15 mb-2" />
-                    <div className="h-4 w-5/6 rounded-full bg-white/15" />
+                  <div className="h-full rounded-[14px] bg-white/70 border border-[#c8d0dc] p-[24px_22px] animate-pulse">
+                    <div className="h-4 w-24 rounded-full bg-[#c8d0dc]/50 mb-4" />
+                    <div className="h-6 w-3/4 rounded-full bg-[#c8d0dc]/50 mb-3" />
+                    <div className="h-4 w-full rounded-full bg-[#c8d0dc]/35 mb-2" />
+                    <div className="h-4 w-5/6 rounded-full bg-[#c8d0dc]/35" />
                   </div>
-                  <div className="h-full rounded-[14px] bg-white/10 border border-white/10 p-[24px_22px] animate-pulse hidden xl:block">
-                    <div className="h-4 w-24 rounded-full bg-white/20 mb-4" />
-                    <div className="h-6 w-3/4 rounded-full bg-white/20 mb-3" />
-                    <div className="h-4 w-full rounded-full bg-white/15 mb-2" />
-                    <div className="h-4 w-5/6 rounded-full bg-white/15" />
+                  <div className="h-full rounded-[14px] bg-white/70 border border-[#c8d0dc] p-[24px_22px] animate-pulse hidden xl:block">
+                    <div className="h-4 w-24 rounded-full bg-[#c8d0dc]/50 mb-4" />
+                    <div className="h-6 w-3/4 rounded-full bg-[#c8d0dc]/50 mb-3" />
+                    <div className="h-4 w-full rounded-full bg-[#c8d0dc]/35 mb-2" />
+                    <div className="h-4 w-5/6 rounded-full bg-[#c8d0dc]/35" />
                   </div>
                 </div>
               </div>
@@ -251,10 +339,10 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
               <>
                 {sections.length > 0 ? (
                   <div className="relative min-h-[560px] flex items-center justify-center overflow-hidden">
-                    {previousSection && (
+                    {previousSection && !isTransitioning && (
                       <div
-                        className="absolute left-0 top-1/2 z-0 hidden xl:block w-[30%] max-w-[360px] pointer-events-none select-none"
-                        style={{ transform: 'translate(-32%, -50%) scale(0.78)', opacity: 0.12, filter: 'blur(5px)' }}
+                        className="absolute left-0 top-1/2 z-0 hidden xl:block w-[18%] max-w-[220px] h-[360px] pointer-events-none select-none origin-center"
+                        style={{ transform: 'translate(-12%, -50%)', opacity: 0.12, filter: 'blur(5px)' }}
                       >
                         <SectionCard
                           topic={previousSection.topic || 'Generating...'}
@@ -263,12 +351,13 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                           legalTerms={parsedContent.legalTerms}
                           isDark={false}
                           animationDelay={0.2}
+                          enableIntroAnimation={false}
                         />
                       </div>
                     )}
 
                     {activeSection && (
-                      <div className="relative z-10 w-full max-w-[680px] h-[560px] px-2 sm:px-6">
+                      <div className="relative z-10 w-full max-w-[680px] h-[560px] px-2 sm:px-6" ref={parentContainerRef}>
                         <SectionCard
                           topic={activeSection.topic || 'Generating...'}
                           summary={activeSection.summary}
@@ -276,14 +365,66 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                           legalTerms={parsedContent.legalTerms}
                           isDark={currentPage % 2 === 0}
                           animationDelay={0.4}
+                          enableIntroAnimation={isPartial}
                         />
                       </div>
                     )}
 
-                    {nextSection && (
+                    {/* Animated clones overlay while transition is active. The underlying DOM is already swapped. */}
+                    {isTransitioning && prevPage !== null && transitionPage !== null && transitionDirection && (
+                      <div className="absolute inset-0 z-20 pointer-events-none">
+                        <div
+                          className="absolute left-1/2 top-1/2 w-full max-w-[680px] h-[560px]"
+                          style={{
+                            animation: `${transitionDirection === 'next' ? 'cardMoveToLeftPreview' : 'cardMoveToRightPreview'} 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards`,
+                            willChange: 'transform, opacity',
+                            transformStyle: 'preserve-3d',
+                            backfaceVisibility: 'hidden',
+                            transform: 'translateZ(0)',
+                            contain: 'paint'
+                          }}
+                        >
+                          <SectionCard
+                            topic={sections[prevPage].topic || 'Generating...'}
+                            summary={sections[prevPage].summary}
+                            content={sections[prevPage].content || ''}
+                            legalTerms={parsedContent.legalTerms}
+                            isDark={prevPage % 2 === 0}
+                            animationDelay={0}
+                            enableIntroAnimation={false}
+                          />
+                        </div>
+                        <div
+                          ref={(el) => { incomingAnimRef.current = el; }}
+                          className="absolute left-1/2 top-1/2 w-full max-w-[680px] h-[560px]"
+                          style={{
+                            animation: `${transitionDirection === 'next' ? 'cardMoveFromRightPreview' : 'cardMoveFromLeftPreview'} 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards`,
+                            willChange: 'transform, opacity',
+                            transformStyle: 'preserve-3d',
+                            backfaceVisibility: 'hidden',
+                            transform: 'translateZ(0)',
+                            contain: 'paint'
+                          }}
+                        >
+                          <SectionCard
+                            topic={sections[transitionPage].topic || 'Generating...'}
+                            summary={sections[transitionPage].summary}
+                            content={sections[transitionPage].content || ''}
+                            legalTerms={parsedContent.legalTerms}
+                            isDark={transitionPage % 2 === 0}
+                            animationDelay={0}
+                            enableIntroAnimation={false}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+ 
+
+                    {nextSection && !isTransitioning && (
                       <div
-                        className="absolute right-0 top-1/2 z-0 hidden xl:block w-[30%] max-w-[360px] pointer-events-none select-none"
-                        style={{ transform: 'translate(32%, -50%) scale(0.78)', opacity: 0.12, filter: 'blur(5px)' }}
+                        className="absolute right-0 top-1/2 z-0 hidden xl:block w-[18%] max-w-[220px] h-[360px] pointer-events-none select-none origin-center"
+                        style={{ transform: 'translate(12%, -50%)', opacity: 0.12, filter: 'blur(5px)' }}
                       >
                         <SectionCard
                           topic={nextSection.topic || 'Generating...'}
@@ -292,6 +433,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                           legalTerms={parsedContent.legalTerms}
                           isDark={true}
                           animationDelay={0.2}
+                          enableIntroAnimation={false}
                         />
                       </div>
                     )}
@@ -321,7 +463,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                   >
                     <button 
                       onClick={handlePrevPage}
-                      disabled={currentPage === 0}
+                      disabled={currentPage === 0 || isTransitioning}
                       className="p-3 sm:p-4 rounded-full bg-white/40 border border-[#edcd6f]/50 text-[#332e18] hover:bg-white/60 hover:scale-110 disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed shadow-sm transition-all"
                     >
                       <ChevronLeft className="w-6 h-6" />
@@ -331,7 +473,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                     </div>
                     <button 
                       onClick={handleNextPage}
-                      disabled={currentPage === totalPages - 1}
+                      disabled={currentPage === totalPages - 1 || isTransitioning}
                       className="p-3 sm:p-4 rounded-full bg-white/40 border border-[#edcd6f]/50 text-[#332e18] hover:bg-white/60 hover:scale-110 disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed shadow-sm transition-all"
                     >
                       <ChevronRight className="w-6 h-6" />

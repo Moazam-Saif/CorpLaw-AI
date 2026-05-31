@@ -159,7 +159,7 @@ export default function ChatSessionPage() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <Sidebar />
 
-        <section className="flex flex-1 flex-col bg-[#f5f6fa] overflow-hidden">
+        <section className="flex flex-1 flex-col bg-[#EAEDF2] overflow-hidden">
           <div ref={scrollContainerRef} className="flex-1 min-h-0 flex flex-col">
           <div className="flex-1 px-4 md:px-10 pt-6 overflow-y-auto min-h-0">
             {initLoading ? (

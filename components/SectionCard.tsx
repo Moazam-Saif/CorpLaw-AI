@@ -9,9 +9,10 @@ interface SectionCardProps {
   legalTerms?: { term: string; definition: string }[];
   isDark?: boolean;
   animationDelay?: number;
+  enableIntroAnimation?: boolean;
 }
 
-export default function SectionCard({ topic, summary, content, legalTerms = [], isDark = true, animationDelay = 0 }: SectionCardProps) {
+export default function SectionCard({ topic, summary, content, legalTerms = [], isDark = true, animationDelay = 0, enableIntroAnimation = true }: SectionCardProps) {
   const { sortedTerms, pattern } = useMemo(() => {
     const validTerms = legalTerms.filter(
       (term): term is { term: string; definition: string } =>
@@ -39,7 +40,15 @@ export default function SectionCard({ topic, summary, content, legalTerms = [], 
       ));
     }
 
-    if (React.isValidElement(node) && node.props?.children !== undefined) {
+    if (React.isValidElement(node)) {
+      if (node.type === TooltipProvider || node.type === Tooltip || node.type === TooltipTrigger || node.type === TooltipContent) {
+        return node;
+      }
+
+      if (node.props?.children === undefined) {
+        return node;
+      }
+
       return React.cloneElement(node, {
         ...node.props,
         children: renderNodeWithTooltips(node.props.children),
@@ -64,12 +73,12 @@ export default function SectionCard({ topic, summary, content, legalTerms = [], 
           <TooltipProvider key={i} delayDuration={150}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="font-semibold text-white underline decoration-slate-500 decoration-dotted underline-offset-4 cursor-help transition-colors hover:text-indigo-300 hover:decoration-indigo-400 hover:bg-slate-800 px-0.5 rounded">
+                <span className="font-semibold text-current underline decoration-slate-500 decoration-dotted underline-offset-4 cursor-help px-0.5 rounded">
                   {part}
                 </span>
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-75 bg-white/60 text-black border-white/70">
-                <p className="font-semibold mb-1 text-black">{matchedTerm.term}</p>
+              <TooltipContent side="top" className="max-w-75 bg-white text-black border-white/70">
+                <p className="font-bold mb-1 text-black">{matchedTerm.term}</p>
                 <p className="text-sm leading-snug text-black">{matchedTerm.definition}</p>
               </TooltipContent>
             </Tooltip>
@@ -103,7 +112,7 @@ export default function SectionCard({ topic, summary, content, legalTerms = [], 
   return (
     <div 
       className={`font-['Afacad',sans-serif] ${theme.cardText} flex flex-col h-full rounded-[14px] p-[24px_22px] text-[17px] font-bold leading-[1.65] overflow-hidden shadow-xl ${theme.cardBg} border ${theme.cardBorder}`}
-      style={{ opacity: 0, animation: `customFadeSlideUp 0.8s ease-out ${animationDelay}s forwards` }}
+      style={enableIntroAnimation ? { opacity: 0, animation: `customFadeSlideUp 0.8s ease-out ${animationDelay}s forwards` } : undefined}
     >
       <h3 className={`font-black text-[28px] uppercase mb-4 tracking-[1.5px] border-b-2 ${theme.divider} pb-4 shrink-0 drop-shadow-md pt-2 ${theme.titleText}`}>
         {topic}
@@ -111,7 +120,7 @@ export default function SectionCard({ topic, summary, content, legalTerms = [], 
       
       <div 
         className="space-y-4 overflow-y-auto flex-1 custom-scrollbar pr-2"
-        style={{ opacity: 0, animation: `customFadeSlideUp 0.8s ease-out ${animationDelay + 0.5}s forwards` }}
+        style={enableIntroAnimation ? { opacity: 0, animation: `customFadeSlideUp 0.8s ease-out ${animationDelay + 0.5}s forwards` } : undefined}
       >
         {summary && (
           <div className={`bg-black/10 border-l-4 ${theme.summaryBorder} p-3 italic ${theme.summaryText} text-[16px] rounded-r-md`}>
