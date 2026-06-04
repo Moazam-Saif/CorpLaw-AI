@@ -73,7 +73,7 @@ export default function SectionCard({ topic, summary, content, legalTerms = [], 
           <TooltipProvider key={i} delayDuration={150}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="font-semibold text-current underline decoration-slate-500 decoration-dotted underline-offset-4 cursor-help px-0.5 rounded">
+                <span className={`font-semibold text-current underline ${isDark ? 'decoration-white decoration-dotted' : 'decoration-slate-500 decoration-dotted'} underline-offset-4 cursor-help px-0.5 rounded`}>
                   {part}
                 </span>
               </TooltipTrigger>
