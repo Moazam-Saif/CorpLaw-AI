@@ -127,11 +127,11 @@ export default function SectionCard({ topic, summary, content, legalTerms = [], 
             {renderTextWithTooltips(summary)}
           </div>
         )}
-        <div className={`prose prose-p:leading-[1.65] prose-headings:font-black prose-a:underline ${theme.cardText} text-[17px] font-bold`}>
+        <div className={`prose prose-p:leading-[1.65] prose-headings:font-black prose-a:underline ${theme.cardText} text-[18px] font-bold`}>
           <ReactMarkdown
             components={{
               p: ({ children }) => <p className="leading-[1.65]">{renderNodeWithTooltips(children)}</p>,
-              ul: ({ children }) => <ul className="list-disc pl-6 space-y-2 marker:text-current">{renderNodeWithTooltips(children)}</ul>,
+              ul: ({ children }) => <ul className="list-disc pl-6 space-y-3 marker:text-current">{renderNodeWithTooltips(children)}</ul>,
               li: ({ children }) => <li className="leading-[1.65]">{renderNodeWithTooltips(children)}</li>,
               strong: ({ children }) => <strong>{renderNodeWithTooltips(children)}</strong>,
               em: ({ children }) => <em>{renderNodeWithTooltips(children)}</em>,

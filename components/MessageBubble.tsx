@@ -240,7 +240,10 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                 overflow: hidden;
               }
               .accordion-card.is-active {
-                flex: 1 1 auto;
+                flex: 0 0 700px;
+                width: 700px;
+                min-width: 700px;
+                max-width: 700px;
                 opacity: 1;
                 filter: blur(0px);
                 cursor: default;
@@ -300,7 +303,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
               <>
                 {sections.length > 0 ? (
                   <div
-                    className="flex items-stretch gap-3 w-full overflow-hidden"
+                    className="flex items-stretch justify-center gap-3 w-full overflow-hidden"
                     style={{ height: '560px' }}
                     ref={layoutContainerRef}
                   >
