@@ -224,7 +224,8 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
           {/* Background click to close */}
           <div className="fixed inset-0" onClick={() => setIsModalOpen(false)}></div>
 
-          <div className="relative font-['Afacad',sans-serif] w-full max-w-[1400px] bg-[#EAEDF2] backdrop-blur-xl p-6 sm:p-10 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.08)] border border-[#c8d0dc] animate-in fade-in zoom-in-[0.98] duration-700 mx-auto mt-0 mb-auto pointer-events-auto">
+          {/* CHANGE 5: max-w-[1400px] → max-w-none for full screen width */}
+          <div className="relative font-['Afacad',sans-serif] w-full max-w-none bg-[#EAEDF2] backdrop-blur-xl p-6 sm:p-10 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.08)] border border-[#c8d0dc] animate-in fade-in zoom-in-[0.98] duration-700 mx-auto mt-0 mb-auto pointer-events-auto">
             <style dangerouslySetInnerHTML={{
               __html: `
               @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700;800;900&display=swap');
@@ -232,30 +233,30 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                 0% { opacity: 0; transform: translateY(30px); }
                 100% { opacity: 1; transform: translateY(0); }
               }
-              /* GPU-friendly move+scale animations. Avoid animating layout properties. */
               .accordion-card {
-  transition: flex 0.55s cubic-bezier(0.77, 0, 0.175, 1),
-              opacity 0.35s cubic-bezier(0.77, 0, 0.175, 1),
-              filter 0.35s cubic-bezier(0.77, 0, 0.175, 1);
-  overflow: hidden;
-}
-.accordion-card.is-active {
-  flex: 1 1 auto;
-  opacity: 1;
-  filter: blur(0px);
-  cursor: default;
-}
-.accordion-card.is-collapsed {
-  flex: 0 0 72px;
-  opacity: 0.85;
-  filter: none;
-  cursor: pointer;
-}
+                transition: flex 0.55s cubic-bezier(0.77, 0, 0.175, 1),
+                            opacity 0.35s cubic-bezier(0.77, 0, 0.175, 1),
+                            filter 0.35s cubic-bezier(0.77, 0, 0.175, 1);
+                overflow: hidden;
+              }
+              .accordion-card.is-active {
+                flex: 1 1 auto;
+                opacity: 1;
+                filter: blur(0px);
+                cursor: default;
+              }
+              .accordion-card.is-collapsed {
+                flex: 0 0 72px;
+                opacity: 0.7;
+                filter: none;
+                cursor: pointer;
+              }
             `}} />
 
+            {/* CHANGE 2: close button dark blue theme */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-[#332e18]/50 hover:text-[#332e18] bg-[#edcd6f]/30 hover:bg-[#edcd6f]/60 rounded-full w-10 h-10 flex items-center justify-center transition-colors shadow-sm"
+              className="absolute top-4 right-4 text-[#332E18]/60 hover:text-[#332E18] bg-[#59ABE9]/20 hover:bg-[#59ABE9]/30 rounded-full w-10 h-10 flex items-center justify-center transition-colors shadow-sm"
             >
               ✕
             </button>
@@ -265,9 +266,10 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                 className="text-center mb-[24px] w-full flex justify-center"
                 style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 0.1s forwards' }}
               >
-                <div className="bg-[#59ABE9] backdrop-blur-sm px-12 py-4 rounded-md border border-[#1B3B9B]/40 shadow-sm min-w-[65%] max-w-4xl text-left flex flex-col gap-1 font-['Afacad',sans-serif] text-[17px] font-[700] text-white">
-                  <span className="text-white text-[13px] uppercase tracking-widest font-[800]">Query</span>
-                  <span className="text-white leading-snug">{userMessage}</span>
+                {/* CHANGE 1: query card less opacity */}
+                <div className="bg-[#59ABE9]/10 backdrop-blur-sm px-12 py-4 rounded-md border border-[#59ABE9]/20 shadow-sm min-w-[65%] max-w-4xl text-left flex flex-col gap-1 font-['Afacad',sans-serif] text-[17px] font-[700] text-gray-500">
+                  <span className="text-[#332E18]/90 text-[13px] uppercase tracking-widest font-[800]">Query</span>
+                  <span className="text-[#332E18]/90 leading-snug">{userMessage}</span>
                 </div>
               </div>
             )}
@@ -308,7 +310,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                         <div
                           key={i}
                           className={`accordion-card rounded-[20px] relative ${isActive ? 'is-active' : 'is-collapsed'}`}
-                          style={{ minWidth: 0,backgroundColor: !isActive ? (i % 2 === 0 ? '#1B3B9B' : '#FBF5C6') : undefined, }}
+                          style={{ minWidth: 0, backgroundColor: !isActive ? (i % 2 === 0 ? '#1B3B9B' : '#FBF5C6') : undefined }}
                           onClick={() => {
                             if (!isActive && !isTransitioning) {
                               startPageTransition(i, i > currentPage ? 'next' : 'prev');
@@ -323,8 +325,8 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                               left: '50%',
                               transform: 'translate(-50%, -50%) rotate(-90deg)',
                               fontFamily: 'Afacad, sans-serif',
-                              fontWeight: 900,
-                              fontSize: '16px',
+                              fontWeight: 800,
+                              fontSize: '14px',
                               letterSpacing: '4px',
                               textTransform: 'uppercase',
                               whiteSpace: 'nowrap',
@@ -377,7 +379,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                     <button
                       onClick={handlePrevPage}
                       disabled={currentPage === 0}
-                      className="p-3 sm:p-4 rounded-full bg-white/40 border border-[#edcd6f]/50 text-[#332e18] hover:bg-white/60 hover:scale-110 disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed shadow-sm transition-all"
+                      className="p-3 sm:p-4 rounded-full bg-white/40 border border-[#59ABE9]/50 text-[#332e18] hover:bg-white/60 hover:scale-110 disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed shadow-sm transition-all"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
@@ -387,32 +389,33 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                     <button
                       onClick={handleNextPage}
                       disabled={currentPage === totalPages - 1}
-                      className="p-3 sm:p-4 rounded-full bg-white/40 border border-[#edcd6f]/50 text-[#332e18] hover:bg-white/60 hover:scale-110 disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed shadow-sm transition-all"
+                      className="p-3 sm:p-4 rounded-full bg-white/40 border border-[#59ABE9]/50 text-[#332e18] hover:bg-white/60 hover:scale-110 disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed shadow-sm transition-all"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
                   </div>
                 )}
 
-                {/* Confidence Meter Inline in Modal */}
+                {/* CHANGE 3: Confidence Meter dark blue theme */}
                 {parsedContent.confidence !== undefined && (
                   <div
                     className="w-full flex justify-center mt-8"
                     style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 2.5s forwards' }}
                   >
-                    <div className="flex items-center gap-3 bg-white/40 p-3 rounded-full backdrop-blur-md border border-[#edcd6f]/50 px-6 shadow-sm">
-                      <span className="text-sm font-[900] text-white uppercase tracking-widest">
+                    <div className="flex items-center gap-3 bg-[#1B3B9B]/10 p-3 rounded-full backdrop-blur-md border border-[#1B3B9B]/20 px-6 shadow-sm">
+                      <span className="text-sm font-[900] text-[#1B3B9B] uppercase tracking-widest">
                         Confidence Level
                       </span>
-                      <div className="h-2.5 bg-[#fbf5c6] rounded-full overflow-hidden w-32 md:w-48 shadow-inner">
+                      <div className="h-2.5 bg-[#1B3B9B]/15 rounded-full overflow-hidden w-32 md:w-48 shadow-inner">
                         <div
-                          className={`h-full transition-all duration-1000 ease-out ${parsedContent.confidence >= 80 ? 'bg-emerald-400' :
-                            parsedContent.confidence >= 60 ? 'bg-amber-400' : 'bg-rose-400'
-                            }`}
+                          className={`h-full transition-all duration-1000 ease-out ${
+                            parsedContent.confidence >= 80 ? 'bg-[#1B3B9B]' :
+                            parsedContent.confidence >= 60 ? 'bg-[#1B3B9B]/70' : 'bg-rose-400'
+                          }`}
                           style={{ width: `${parsedContent.confidence}%` }}
                         />
                       </div>
-                      <span className="text-sm font-[900] text-[#332e18]">
+                      <span className="text-sm font-[900] text-[#1B3B9B]">
                         {Math.round(parsedContent.confidence)}%
                       </span>
                     </div>
@@ -421,6 +424,8 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
 
                 {parsedContent.references && parsedContent.references.length > 0 && (
                   <div className="mt-8 mx-auto w-full max-w-4xl" style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 2.5s forwards' }}>
+                    {/* CHANGE 4: dark blue underline before legal references */}
+                    <div className="w-full border-t-2 border-[#1B3B9B]/40 mb-4" />
                     <ReferencesList references={parsedContent.references} />
                   </div>
                 )}
