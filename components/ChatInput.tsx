@@ -52,7 +52,7 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
   return (
     <div className={isOpen ? "h-full overflow-visible bg-transparent px-4 pb-0 pt-2 shrink-0 flex justify-center items-end w-full pointer-events-auto" : "h-0 overflow-visible bg-transparent px-4 pb-0 pt-2 shrink-0 flex justify-center items-end w-full pointer-events-none"}>
       <div 
-        className="flex items-end justify-center -space-x-8 relative cursor-pointer hover:scale-105 transition-transform duration-300 md:ml-10 pointer-events-auto"
+        className="group flex items-end justify-center -space-x-8 relative cursor-pointer md:ml-10 pointer-events-auto"
         onClick={() => { setThemeIdx(Math.floor(Math.random() * themeChoices.length)); setIsOpen(true); }}
       >
         
@@ -91,7 +91,7 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
         </div>
 
         {/* Pen accent */}
-        <div className="absolute right-[-10px] top-1/2 w-[80px] md:w-[96px] shrink-0 z-30 drop-shadow-xl transform -translate-y-4 rotate-[99deg] translate-x-10 pointer-events-none">
+        <div className="absolute right-[-10px] top-1/2 w-[80px] md:w-[96px] shrink-0 z-30 drop-shadow-xl transform -translate-y-4 rotate-[99deg] translate-x-10 pointer-events-none transition-all duration-300 ease-out group-hover:-translate-y-10 group-hover:rotate-[90deg]">
           <Image 
             src="/pen.png" 
             alt="Pen" 
