@@ -65,6 +65,9 @@ export default function ChatSessionPage() {
   const streamingUserMessageRef = useRef<string | null>(null);
   const [streamingUserMessage, setStreamingUserMessage] = useState<string | null>(null);
 
+  // Track the last finished message ID so we can auto-open it.
+  const [lastFinishedId, setLastFinishedId] = useState<string | null>(null);
+
   const setStreamingQuery = (val: string | null) => {
     streamingUserMessageRef.current = val;
     setStreamingUserMessage(val);
@@ -75,16 +78,16 @@ export default function ChatSessionPage() {
     schema: aiResponseSchema,
     onFinish: ({ object }) => {
       if (object) {
+        const newId = Date.now().toString();
         const finalAiMsg: Message = {
-          id: Date.now().toString(),
+          id: newId,
           role: 'ASSISTANT',
           content: JSON.stringify(object),
           createdAt: new Date().toISOString(),
         };
         setMessages(prev => [...prev, finalAiMsg]);
+        setLastFinishedId(newId);
       }
-      // Don't clear streamingUserMessage here — the streaming bubble
-      // will unmount naturally once isStreaming becomes false.
     },
     onError: (error) => {
       console.error('Streaming error:', error);
@@ -193,7 +196,7 @@ export default function ChatSessionPage() {
                           message={pair.aiMsg}
                           userMessage={pair.userMsg?.content}
                           index={index}
-                          defaultOpen={false}
+                          defaultOpen={pair.aiMsg.id === lastFinishedId}
                         />
                       );
                     } else if (pair.userMsg) {
