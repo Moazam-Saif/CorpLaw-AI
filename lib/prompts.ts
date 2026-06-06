@@ -10,7 +10,7 @@ export const buildSystemPrompt = (country: string | null = "Global") => {
       {
         "topic": "Short title of this section",
         "summary": "One-sentence overview of this section.",
-        "content": "Bullet-point list in markdown for this section (each line starting with '- ')."
+        "content": "- Bullet one\\n- Bullet two\\n- Bullet three"
       }
     ],
     "legalTerms": [
@@ -35,12 +35,12 @@ export const buildSystemPrompt = (country: string | null = "Global") => {
   - Stream the answer section-by-section in order. Start with the first topic immediately, then continue with the next topic, and so on until complete.
   - Do not wait to finish the entire answer before producing the first section.
 
-  BULLET POINT FORMAT (required):
-  - For each section, keep the "content" field as a single JSON string.
-  - That string should contain a markdown bullet list, where every bullet starts with a dash followed by a space (for example: "- ").
-  - Aim for concise bullets: 3–5 bullets per section is ideal. Each bullet should be one short sentence (1–2 lines).
-  - The entire "content" string for each section should stay shorter than before, roughly 70–80 words total, distributed across the bullets.
-  - Do NOT return nested lists; keep a flat list of top-level bullets, and do not add prose outside the bullets.
+  BULLET POINT FORMAT (critical):
+  - The "content" field must be a JSON string where each point is separated by "\\n".
+  - Each point is one short sentence. Do NOT start points with "- " or any other prefix.
+  - Example of correct "content" value: "Directors owe fiduciary duties to the company.\\nShareholders may inspect company records.\\nAnnual general meetings are required by law."
+  - Aim for 3–5 points per section, totalling roughly 70–80 words.
+  - No paragraph text, no dashes, no nested structure — just newline-separated sentences.
 
   SECTION STRUCTURE & BALANCE (critical for UI rendering):
   - Your goal is to decompose the answer into focused, atomic subtopics — one idea per section, one section per card.
@@ -60,7 +60,7 @@ export const buildSystemPrompt = (country: string | null = "Global") => {
   - If a section naturally has fewer than 2 terms, merge it with a related section so the final answer still has at least 2 defined terms per passage.
   - In "references", include actual legislation, statutes, or official government/regulatory sources relevant to '${country}'. Only include real, verifiable sources. If you are uncertain of the exact URL, omit the "url" field rather than guessing.
   - "confidence" should be an integer from 0 to 100 based on the legal certainty of the answer in the context of the jurisdiction.
-  - "content" in each section supports markdown (bold, lists, headers) but must be properly string-escaped for JSON.
+  - "content" in each section supports markdown (bold, lists) but must be properly string-escaped for JSON.
   - If a user asks non-legal questions, briefly mention your specialization, then try to relate it to corporate contexts if possible, or politely decline.
   - Never fabricate case law or statutes. If uncertain, state the uncertainty and provide general business legal practices instead.`;
 };
