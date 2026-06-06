@@ -267,7 +267,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
             {userMessage && (
               <div
                 className="text-center mb-[24px] w-full flex justify-center"
-                style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 0.1s forwards' }}
+                style={{ opacity: 0, animation: 'customFadeSlideUp 0.3s ease-out 0s forwards' }}
               >
                 {/* CHANGE 1: query card less opacity */}
                 <div className="bg-[#59ABE9]/10 backdrop-blur-sm px-12 py-4 rounded-md border border-[#59ABE9]/20 shadow-sm min-w-[65%] max-w-4xl text-left flex flex-col gap-1 font-['Afacad',sans-serif] text-[17px] font-[700] text-gray-500">
@@ -377,7 +377,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                 {totalPages > 1 && (
                   <div
                     className="flex items-center justify-center gap-4 mt-8"
-                    style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 2.5s forwards' }}
+                    style={{ opacity: 0, animation: 'customFadeSlideUp 0.3s ease-out 0s forwards' }}
                   >
                     <button
                       onClick={handlePrevPage}
@@ -403,7 +403,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                 {parsedContent.confidence !== undefined && (
                   <div
                     className="w-full flex justify-center mt-8"
-                    style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 2.5s forwards' }}
+                    style={{ opacity: 0, animation: 'customFadeSlideUp 0.3s ease-out 0s forwards' }}
                   >
                     <div className="flex items-center gap-3 bg-[#1B3B9B]/10 p-3 rounded-full backdrop-blur-md border border-[#1B3B9B]/20 px-6 shadow-sm">
                       <span className="text-sm font-[900] text-[#1B3B9B] uppercase tracking-widest">
@@ -426,7 +426,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
                 )}
 
                 {parsedContent.references && parsedContent.references.length > 0 && (
-                  <div className="mt-8 mx-auto w-full max-w-4xl" style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 2.5s forwards' }}>
+                  <div className="mt-8 mx-auto w-full max-w-4xl" style={{ opacity: 0, animation: 'customFadeSlideUp 0.3s ease-out 0s forwards' }}>
                     {/* CHANGE 4: dark blue underline before legal references */}
                     <div className="w-full border-t-2 border-[#1B3B9B]/40 mb-4" />
                     <ReferencesList references={parsedContent.references} />
@@ -437,7 +437,7 @@ export default function MessageBubble({ message, userMessage, partialObject, isS
               /* Unstructured Modal display fallback */
               <div
                 className="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl max-w-4xl mx-auto w-full"
-                style={{ opacity: 0, animation: 'customFadeSlideUp 0.8s ease-out 0.4s forwards' }}
+                style={{ opacity: 0, animation: 'customFadeSlideUp 0.3s ease-out 0s forwards' }}
               >
                 <div className="prose prose-lg prose-slate max-w-none prose-headings:text-[#111111] text-[#111111]">
                   <ReactMarkdown>{displayContent}</ReactMarkdown>
