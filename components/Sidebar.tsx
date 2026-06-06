@@ -90,10 +90,7 @@ export default function Sidebar() {
           ))}
         </div>
       </nav>
-      <div className="border-t py-2 shrink-0">
-        <div className="px-4 py-3 flex gap-3 text-slate-700 hover:bg-slate-200 cursor-pointer"><User size={18}/> User Account</div>
-        <div className="px-4 py-3 flex gap-3 text-slate-700 hover:bg-slate-200 cursor-pointer"><Settings size={18}/> Settings</div>
-      </div>
+      
 
       <style jsx global>{`
         .sidebar-scrollbar {
