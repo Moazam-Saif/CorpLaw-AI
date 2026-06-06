@@ -36,7 +36,7 @@ export async function GET(
 
     const authSession = await getServerSession(authOptions);
     const authUserId = authSession?.user ? (authSession.user as any).id : null;
-    const guestId = cookies().get(GUEST_COOKIE)?.value ?? null;
+    const guestId = (await cookies()).get(GUEST_COOKIE)?.value ?? null;
 
     if (!canAccess(chatSession, authUserId, guestId)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -65,7 +65,7 @@ export async function DELETE(
 
     const authSession = await getServerSession(authOptions);
     const authUserId = authSession?.user ? (authSession.user as any).id : null;
-    const guestId = cookies().get(GUEST_COOKIE)?.value ?? null;
+    const guestId = (await cookies()).get(GUEST_COOKIE)?.value ?? null;
 
     if (!canAccess(chatSession, authUserId, guestId)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

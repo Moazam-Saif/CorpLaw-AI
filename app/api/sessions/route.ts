@@ -8,8 +8,8 @@ import { v4 as uuidv4 } from "uuid";
 const GUEST_COOKIE = "corplaw_guest_id";
 const GUEST_MAX_AGE = 60 * 60 * 24 * 90; // 90 days
 
-function getGuestId(): { guestId: string; isNew: boolean } {
-  const cookieStore = cookies();
+async function getGuestId(): Promise<{ guestId: string; isNew: boolean }> {
+  const cookieStore = await cookies();                        // ← await added
   const existing = cookieStore.get(GUEST_COOKIE)?.value;
   if (existing) return { guestId: existing, isNew: false };
   return { guestId: uuidv4(), isNew: true };
@@ -21,7 +21,6 @@ export async function GET(req: NextRequest) {
     const authSession = await getServerSession(authOptions);
 
     if (authSession?.user) {
-      // Authenticated: return all sessions belonging to this user
       const userId = (authSession.user as any).id as string;
       const sessions = await prisma.chatSession.findMany({
         where: { userId },
@@ -30,8 +29,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(sessions);
     }
 
-    // Guest: return sessions for this browser's guest ID
-    const { guestId } = getGuestId();
+    const { guestId } = await getGuestId();
     const sessions = await prisma.chatSession.findMany({
       where: { guestId, userId: null },
       orderBy: { createdAt: "desc" },
@@ -49,7 +47,6 @@ export async function POST(req: NextRequest) {
     const authSession = await getServerSession(authOptions);
 
     if (authSession?.user) {
-      // Authenticated user
       const userId = (authSession.user as any).id as string;
       const session = await prisma.chatSession.create({
         data: { title: "New Session", userId },
@@ -57,8 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(session);
     }
 
-    // Guest user – ensure they have a persistent cookie
-    const { guestId, isNew } = getGuestId();
+    const { guestId, isNew } = await getGuestId();
     const session = await prisma.chatSession.create({
       data: { title: "New Session", guestId },
     });
