@@ -45,13 +45,13 @@ export default function SectionCard({ topic, summary, content, legalTerms = [], 
         return node;
       }
 
-      if (node.props?.children === undefined) {
+      if ((node.props as any)?.children === undefined) {
         return node;
       }
 
       return React.cloneElement(node, {
-        ...node.props,
-        children: renderNodeWithTooltips(node.props.children),
+        ...(node.props as any),
+        children: renderNodeWithTooltips((node.props as any).children),
       });
     }
 
