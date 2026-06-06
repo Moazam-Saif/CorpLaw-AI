@@ -9,7 +9,7 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEY || "",
 });
 
-export const maxDuration = 60; // Allow longer generation time
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,39 +19,36 @@ export async function POST(req: NextRequest) {
       return new Response("Missing sessionId or message", { status: 400 });
     }
 
-    // Load past messages
+    // Load past messages  (model renamed: chatSession → ChatSession)
     const pastMessages = await prisma.message.findMany({
       where: { sessionId },
       orderBy: { createdAt: "asc" },
       take: 12,
     });
 
-    const history: { role: "user" | "assistant"; content: string }[] = pastMessages.map((msg) => ({
-      role: msg.role === "USER" ? "user" : "assistant",
-      content: msg.content,
-    }));
+    const history: { role: "user" | "assistant"; content: string }[] =
+      pastMessages.map((msg) => ({
+        role: msg.role === "USER" ? "user" : "assistant",
+        content: msg.content,
+      }));
 
-    // Update Session title
+    // Update chat session title on first message
     if (pastMessages.length === 0) {
-      const shortTitle = message.substring(0, 30) + (message.length > 30 ? "..." : "");
-      await prisma.session.update({
+      const shortTitle =
+        message.substring(0, 30) + (message.length > 30 ? "..." : "");
+      await prisma.chatSession.update({          // ← renamed
         where: { id: sessionId },
         data: { title: shortTitle },
       });
     }
 
-    // Save User message immediately
+    // Save user message immediately
     await prisma.message.create({
-      data: {
-        sessionId,
-        role: "USER",
-        content: message,
-      },
+      data: { sessionId, role: "USER", content: message },
     });
 
     history.push({ role: "user", content: message });
 
-    // Stream the structured object using the AI SDK
     const result = streamObject({
       model: google("gemini-2.5-flash"),
       system: buildSystemPrompt(country),
@@ -60,28 +57,26 @@ export async function POST(req: NextRequest) {
         sections: z.array(
           z.object({
             topic: z.string().describe("Short title of this section"),
-            summary: z.string().describe("One-sentence overview of this section"),
+            summary: z.string().describe("One-sentence overview"),
             content: z.string().describe("Full markdown-formatted legal analysis"),
           })
         ),
-        legalTerms: z.array(
-          z.object({
-            term: z.string(),
-            definition: z.string(),
-          })
-        ).optional(),
-        references: z.array(
-          z.object({
-            title: z.string(),
-            url: z.string().optional(),
-            description: z.string().optional(),
-          })
-        ).optional(),
-        confidence: z.number().describe("0 to 100 integer confidence score"),
+        legalTerms: z
+          .array(z.object({ term: z.string(), definition: z.string() }))
+          .optional(),
+        references: z
+          .array(
+            z.object({
+              title: z.string(),
+              url: z.string().optional(),
+              description: z.string().optional(),
+            })
+          )
+          .optional(),
+        confidence: z.number().describe("0–100 confidence score"),
         disclaimer: z.string(),
       }),
       onFinish: async ({ object }) => {
-        // Save the AI response when finished streaming
         if (object) {
           await prisma.message.create({
             data: {

@@ -1,27 +1,83 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../prisma/generated"
+  provider = "prisma-client-js"
+  output   = "../prisma/generated"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model Session {
+// ─── NextAuth required models ────────────────────────────────────────────────
+
+model User {
+  id            String        @id @default(cuid())
+  name          String?
+  email         String?       @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime      @default(now())
+  accounts      Account[]
+  sessions      AuthSession[]
+  chatSessions  ChatSession[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// NextAuth's own session table (separate from your chat sessions)
+model AuthSession {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── App models ──────────────────────────────────────────────────────────────
+
+// Renamed from Session → ChatSession
+// userId is nullable so guest chats work without an account
+model ChatSession {
   id        String    @id @default(cuid())
   title     String?
+  userId    String?                                           // null = guest
+  guestId   String?                                          // cookie-based guest identifier
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   messages  Message[]
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  sessionId String
-  role      Role
-  content   String
-  createdAt DateTime @default(now())
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  sessionId     String
+  role          Role
+  content       String
+  createdAt     DateTime    @default(now())
+  chatSession   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

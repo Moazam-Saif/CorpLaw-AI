@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.79",
     "@ai-sdk/react": "^3.0.193",
+    "@auth/prisma-adapter": "^2.11.2",
     "@google/generative-ai": "^0.24.1",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
@@ -22,6 +23,7 @@
     "dotenv": "^17.4.2",
     "lucide-react": "^1.11.0",
     "next": "16.2.4",
+    "next-auth": "^4.24.14",
     "pg": "^8.20.0",
     "postcss": "^8.5.15",
     "prisma": "^7.8.0",
@@ -29,6 +31,7 @@
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
     "tailwind-merge": "^3.6.0",
+    "uuid": "^14.0.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -36,6 +39,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4.3.0",
