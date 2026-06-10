@@ -1,5 +1,7 @@
 # Corp Law AI
 
+Live URL: https://corp-law-ai.vercel.app/
+
 A jurisdiction-aware corporate law assistant built with Next.js, Gemini 2.5 Flash, and PostgreSQL. Users type a legal question, and the app streams a structured response broken into section cards — each with a topic, summary, bullet-point analysis, legal term tooltips, confidence score, and cited references.
 
 ---
